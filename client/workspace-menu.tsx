@@ -2,7 +2,7 @@
 // the row's info card; labels name their target. Archive asks first and warns when an agent still works
 // or waits for you.
 import type { PluginTheme } from "@getpaseo/plugin";
-import { Icon, TextInput } from "@getpaseo/plugin/client/ui";
+import { Icon, ScrollView, TextInput } from "@getpaseo/plugin/client/ui";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { removedFromRecent, type ReadMap } from "../shared/reads";
@@ -131,84 +131,87 @@ export function WorkspaceMenu({
 
   return (
     <Sheet theme={theme} title={tab ? tab.title : workspace.title} compact={compact} anchor={target.anchor} width={320} onClose={() => !busy && onClose()}>
-      <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
-        <InfoCard theme={theme} row={tab ?? row} scale={scale} now={now} parentTitle={parentTitle} />
-      </View>
-      <SheetDivider theme={theme} />
-      {mode === "rename" ? (
-        <View style={{ gap: 8, padding: 8 }}>
-          <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
-            <TextInput
-              {...titleField}
-              value={title}
-              onChangeText={setTitle}
-              autoFocus
-              selectTextOnFocus
-              returnKeyType="done"
-              onSubmitEditing={rename}
-              accessibilityLabel="Workspace name"
-              placeholder="Workspace name"
-              placeholderTextColor={c.foregroundMuted}
-              style={{ color: c.foreground, fontSize: 16, paddingVertical: 10 }}
-            />
-          </View>
-          {error ? <Text style={{ color: c.statusDanger }}>{`Could not rename: ${error}`}</Text> : null}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable accessibilityRole="button" disabled={busy} onPress={() => setMode("menu")} style={{ ...button, backgroundColor: c.surface2 }}>
-              <Text style={{ color: c.foreground, fontWeight: "500" }}>Cancel</Text>
-            </Pressable>
-            <Pressable accessibilityRole="button" disabled={!canSave} onPress={rename} style={{ ...button, backgroundColor: c.accent, opacity: canSave ? 1 : 0.5 }}>
-              <Text style={{ color: c.accentForeground, fontWeight: "600" }}>{busy ? "Saving…" : "Rename"}</Text>
-            </Pressable>
-          </View>
+      {/* The popover is capped by the room above or below its button: scroll when the card and actions do not fit. */}
+      <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
+          <InfoCard theme={theme} row={tab ?? row} scale={scale} now={now} parentTitle={parentTitle} />
         </View>
-      ) : mode === "archive" ? (
-        <View style={{ gap: 10, padding: 8 }}>
-          <Text style={{ color: c.foreground, fontSize: 15 }}>{`Archive "${workspace.title}"?`}</Text>
-          {warning ? (
-            <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
-              <Icon name="TriangleAlert" size={18} color={c.statusWarning} />
-              <Text style={{ flex: 1, color: c.statusWarning }}>{warning}</Text>
-            </View>
-          ) : null}
-          <Text style={{ color: c.foregroundMuted }}>It disappears from the list. Paseo keeps archived workspaces in its history.</Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable accessibilityRole="button" onPress={() => setMode("menu")} style={{ ...button, backgroundColor: c.surface2 }}>
-              <Text style={{ color: c.foreground, fontWeight: "500" }}>Cancel</Text>
-            </Pressable>
-            <Pressable accessibilityRole="button" onPress={then(onArchive)} style={{ ...button, backgroundColor: c.statusDanger }}>
-              <Text style={{ color: c.accentForeground, fontWeight: "600" }}>Archive</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : (
-        <>
-          {tabAction ? (
-            <>
-              <SheetItem
-                theme={theme}
-                compact={compact}
-                icon={tabAction.mark === "unread" ? "Check" : "Undo2"}
-                label={tabAction.mark === "unread" ? `Mark "${tabAction.title}" read` : `Mark "${tabAction.title}" unread`}
-                onPress={then(toggleTab)}
+        <SheetDivider theme={theme} />
+        {mode === "rename" ? (
+          <View style={{ gap: 8, padding: 8 }}>
+            <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
+              <TextInput
+                {...titleField}
+                value={title}
+                onChangeText={setTitle}
+                autoFocus
+                selectTextOnFocus
+                returnKeyType="done"
+                onSubmitEditing={rename}
+                accessibilityLabel="Workspace name"
+                placeholder="Workspace name"
+                placeholderTextColor={c.foregroundMuted}
+                style={{ color: c.foreground, fontSize: 16, paddingVertical: 10 }}
               />
-              <SheetDivider theme={theme} />
-            </>
-          ) : null}
-          <SheetItem theme={theme} compact={compact} icon={pinned ? "PinOff" : "Pin"} label={pinned ? "Unpin workspace" : "Pin workspace"} onPress={then(() => store.setPinned(profileId, row.serverId, workspace.id, !pinned))} />
-          {canMarkRead ? <SheetItem theme={theme} compact={compact} icon="CheckCheck" label="Mark workspace read" onPress={then(() => markWorkspaceRead(store, row, onToast))} /> : null}
-          <SheetItem theme={theme} compact={compact} icon={offRecent ? "History" : "EyeOff"} label={offRecent ? "Show in Recent again" : "Remove from Recent"} onPress={then(() => toggleRecent(store, snapshot.reads, row, onToast))} />
-          <SheetItem theme={theme} compact={compact} icon="Pencil" label="Rename workspace" onPress={() => setMode("rename")} />
-          {manual && index !== -1 ? (
-            <>
-              <SheetItem theme={theme} compact={compact} icon="ArrowUp" label="Move up" disabled={index === 0} onPress={then(() => onMove(-1))} />
-              <SheetItem theme={theme} compact={compact} icon="ArrowDown" label="Move down" disabled={index === siblings.length - 1} onPress={then(() => onMove(1))} />
-            </>
-          ) : null}
-          <SheetDivider theme={theme} />
-          <SheetItem theme={theme} compact={compact} icon="Archive" label="Archive workspace…" danger onPress={() => setMode("archive")} />
-        </>
-      )}
+            </View>
+            {error ? <Text style={{ color: c.statusDanger }}>{`Could not rename: ${error}`}</Text> : null}
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable accessibilityRole="button" disabled={busy} onPress={() => setMode("menu")} style={{ ...button, backgroundColor: c.surface2 }}>
+                <Text style={{ color: c.foreground, fontWeight: "500" }}>Cancel</Text>
+              </Pressable>
+              <Pressable accessibilityRole="button" disabled={!canSave} onPress={rename} style={{ ...button, backgroundColor: c.accent, opacity: canSave ? 1 : 0.5 }}>
+                <Text style={{ color: c.accentForeground, fontWeight: "600" }}>{busy ? "Saving…" : "Rename"}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : mode === "archive" ? (
+          <View style={{ gap: 10, padding: 8 }}>
+            <Text style={{ color: c.foreground, fontSize: 15 }}>{`Archive "${workspace.title}"?`}</Text>
+            {warning ? (
+              <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+                <Icon name="TriangleAlert" size={18} color={c.statusWarning} />
+                <Text style={{ flex: 1, color: c.statusWarning }}>{warning}</Text>
+              </View>
+            ) : null}
+            <Text style={{ color: c.foregroundMuted }}>It disappears from the list. Paseo keeps archived workspaces in its history.</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable accessibilityRole="button" onPress={() => setMode("menu")} style={{ ...button, backgroundColor: c.surface2 }}>
+                <Text style={{ color: c.foreground, fontWeight: "500" }}>Cancel</Text>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={then(onArchive)} style={{ ...button, backgroundColor: c.statusDanger }}>
+                <Text style={{ color: c.accentForeground, fontWeight: "600" }}>Archive</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <>
+            {tabAction ? (
+              <>
+                <SheetItem
+                  theme={theme}
+                  compact={compact}
+                  icon={tabAction.mark === "unread" ? "Check" : "Undo2"}
+                  label={tabAction.mark === "unread" ? `Mark "${tabAction.title}" read` : `Mark "${tabAction.title}" unread`}
+                  onPress={then(toggleTab)}
+                />
+                <SheetDivider theme={theme} />
+              </>
+            ) : null}
+            <SheetItem theme={theme} compact={compact} icon={pinned ? "PinOff" : "Pin"} label={pinned ? "Unpin workspace" : "Pin workspace"} onPress={then(() => store.setPinned(profileId, row.serverId, workspace.id, !pinned))} />
+            {canMarkRead ? <SheetItem theme={theme} compact={compact} icon="CheckCheck" label="Mark workspace read" onPress={then(() => markWorkspaceRead(store, row, onToast))} /> : null}
+            <SheetItem theme={theme} compact={compact} icon={offRecent ? "History" : "EyeOff"} label={offRecent ? "Show in Recent again" : "Remove from Recent"} onPress={then(() => toggleRecent(store, snapshot.reads, row, onToast))} />
+            <SheetItem theme={theme} compact={compact} icon="Pencil" label="Rename workspace" onPress={() => setMode("rename")} />
+            {manual && index !== -1 ? (
+              <>
+                <SheetItem theme={theme} compact={compact} icon="ArrowUp" label="Move up" disabled={index === 0} onPress={then(() => onMove(-1))} />
+                <SheetItem theme={theme} compact={compact} icon="ArrowDown" label="Move down" disabled={index === siblings.length - 1} onPress={then(() => onMove(1))} />
+              </>
+            ) : null}
+            <SheetDivider theme={theme} />
+            <SheetItem theme={theme} compact={compact} icon="Archive" label="Archive workspace…" danger onPress={() => setMode("archive")} />
+          </>
+        )}
+      </ScrollView>
     </Sheet>
   );
 }

@@ -1,6 +1,7 @@
 // Action sheet of a project header (hold the name on phones, right-click on desktop): its info card,
 // then New workspace, manual order and folder colour.
 import type { PluginTheme } from "@getpaseo/plugin";
+import { ScrollView } from "@getpaseo/plugin/client/ui";
 import type { ProjectRow } from "../shared/tree";
 import { InfoCard } from "./names-card";
 import { Sheet, SheetDivider, SheetItem, type Anchor } from "./sheet";
@@ -41,18 +42,21 @@ export function ProjectMenu({
   };
   return (
     <Sheet theme={theme} title={row.name} compact={compact} anchor={anchor} width={320} onClose={onClose}>
-      <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
-        <InfoCard theme={theme} row={row} scale={scale} now={now} />
-      </View>
-      <SheetDivider theme={theme} />
-      {row.rootPath ? <SheetItem theme={theme} compact={compact} icon="Plus" label={`New workspace in ${row.name}`} onPress={then(onCreate)} /> : null}
-      {manual && index !== -1 ? (
-        <>
-          <SheetItem theme={theme} compact={compact} icon="ArrowUp" label="Move project up" disabled={index === 0} onPress={then(() => onMove(-1))} />
-          <SheetItem theme={theme} compact={compact} icon="ArrowDown" label="Move project down" disabled={index === siblings.length - 1} onPress={then(() => onMove(1))} />
-        </>
-      ) : null}
-      <SheetItem theme={theme} compact={compact} icon="Palette" label="Folder colour…" onPress={then(onPickColor)} />
+      {/* The popover is capped by the room above or below its button: scroll when the card and actions do not fit. */}
+      <ScrollView style={{ flexGrow: 0, flexShrink: 1 }}>
+        <View style={{ paddingHorizontal: 10, paddingBottom: 8 }}>
+          <InfoCard theme={theme} row={row} scale={scale} now={now} />
+        </View>
+        <SheetDivider theme={theme} />
+        {row.rootPath ? <SheetItem theme={theme} compact={compact} icon="Plus" label={`New workspace in ${row.name}`} onPress={then(onCreate)} /> : null}
+        {manual && index !== -1 ? (
+          <>
+            <SheetItem theme={theme} compact={compact} icon="ArrowUp" label="Move project up" disabled={index === 0} onPress={then(() => onMove(-1))} />
+            <SheetItem theme={theme} compact={compact} icon="ArrowDown" label="Move project down" disabled={index === siblings.length - 1} onPress={then(() => onMove(1))} />
+          </>
+        ) : null}
+        <SheetItem theme={theme} compact={compact} icon="Palette" label="Folder colour…" onPress={then(onPickColor)} />
+      </ScrollView>
     </Sheet>
   );
 }
