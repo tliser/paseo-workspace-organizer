@@ -8,7 +8,7 @@ import type { ProjectRow } from "../shared/tree";
 import { useKeyboardTop } from "./keyboard";
 import { useNavigatorStore } from "./runtime";
 import type { ProviderChoice, ProviderListState, ProviderToggle } from "./store";
-import { useOwnField } from "./chat-nav";
+import { bareInput, useField } from "./field";
 
 /** Last choice per host for this app session, so the next draft starts where you left off. */
 const lastChoice = new Map<
@@ -183,9 +183,9 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
   const page = useRef<View>(null);
   const scroll = useRef<ScrollView>(null);
   const promptFocused = useRef(false);
-  const nameField = useOwnField();
-  const branchField = useOwnField();
-  const promptField = useOwnField();
+  const nameField = useField(theme);
+  const branchField = useField(theme);
+  const promptField = useField(theme);
   const keyboardTop = useKeyboardTop();
   const [keyboardInset, setKeyboardInset] = useState(0);
   useEffect(() => {
@@ -198,16 +198,16 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
     <>
         <View>
           <Text style={label}>Name (optional)</Text>
-          <View style={field}>
+          <View style={{ ...field, borderColor: nameField.borderColor }}>
             <TextInput
-              {...nameField}
+              {...nameField.input}
               value={name}
               onChangeText={setName}
               placeholder="Generated if empty"
               placeholderTextColor={c.foregroundMuted}
               accessibilityLabel="Workspace name"
               maxLength={80}
-              style={{ flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 10 }}
+              style={{ ...bareInput, flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 10 }}
             />
           </View>
         </View>
@@ -217,16 +217,16 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
             <Text style={label}>Where</Text>
             {segmented(isolation, [{ id: "worktree", label: "New worktree", icon: "GitBranch" }, { id: "local", label: "Project folder", icon: "Folder" }], setIsolation)}
             {isolation === "worktree" ? (
-              <View style={{ ...field, marginTop: 8 }}>
+              <View style={{ ...field, borderColor: branchField.borderColor, marginTop: 8 }}>
                 <TextInput
-                  {...branchField}
+                  {...branchField.input}
                   value={branch}
                   onChangeText={setBranch}
                   placeholder="Branch name (optional, generated if empty)"
                   placeholderTextColor={c.foregroundMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  style={{ flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 10 }}
+                  style={{ ...bareInput, flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 10 }}
                 />
               </View>
             ) : null}
@@ -304,23 +304,23 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
               ))}
               <View>
                 <Text style={label}>First message (optional)</Text>
-                <View style={{ ...field, alignItems: "flex-start" }}>
+                <View style={{ ...field, borderColor: promptField.borderColor, alignItems: "flex-start" }}>
                   <TextInput
                     value={prompt}
                     onChangeText={setPrompt}
                     onFocus={() => {
-                      promptField.onFocus();
+                      promptField.input.onFocus();
                       promptFocused.current = true;
                       if (keyboardInset) scroll.current?.scrollToEnd();
                     }}
                     onBlur={() => {
-                      promptField.onBlur();
+                      promptField.input.onBlur();
                       promptFocused.current = false;
                     }}
                     placeholder="What should the agent do?"
                     placeholderTextColor={c.foregroundMuted}
                     multiline
-                    style={{ flex: 1, minHeight: 72, color: c.foreground, fontSize: 15, paddingVertical: 10, textAlignVertical: "top" }}
+                    style={{ ...bareInput, flex: 1, minHeight: 72, color: c.foreground, fontSize: 15, paddingVertical: 10, textAlignVertical: "top" }}
                   />
                 </View>
               </View>

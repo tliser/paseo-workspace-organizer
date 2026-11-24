@@ -7,7 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import { MONO_FONT } from "./font-scale";
 import { useNavigatorStore } from "./runtime";
 import { Sheet, type Anchor } from "./sheet";
-import { useOwnField } from "./chat-nav";
+import { bareInput, useField } from "./field";
 
 export function NewProjectSheet({
   theme,
@@ -32,7 +32,7 @@ export function NewProjectSheet({
   const [path, setPath] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pathField = useOwnField();
+  const pathField = useField(theme);
   const canAdd = !busy && path.trim().length > 0;
   const add = () => {
     if (!canAdd) return;
@@ -71,9 +71,9 @@ export function NewProjectSheet({
             })}
           </View>
         ) : null}
-        <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
+        <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: pathField.borderColor, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
           <TextInput
-            {...pathField}
+            {...pathField.input}
             value={path}
             onChangeText={setPath}
             autoFocus
@@ -84,7 +84,7 @@ export function NewProjectSheet({
             accessibilityLabel="Project folder"
             placeholder="~/dev/my-project"
             placeholderTextColor={c.foregroundMuted}
-            style={{ color: c.foreground, fontSize: 16, paddingVertical: 10, fontFamily: MONO_FONT }}
+            style={{ ...bareInput, color: c.foreground, fontSize: 16, paddingVertical: 10, fontFamily: MONO_FONT }}
           />
         </View>
         <Text style={{ color: c.foregroundMuted }}>{`An existing folder on ${hostLabel}. Paseo adds it as a project and opens a workspace on it.`}</Text>

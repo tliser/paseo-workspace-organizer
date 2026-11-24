@@ -7,7 +7,7 @@ import type { InboxTally } from "../shared/inbox";
 import { FILTERS, type Filter } from "../shared/types";
 import { TallyMarks } from "./marks";
 import { measureAnchor, type Anchor } from "./sheet";
-import { useOwnField } from "./chat-nav";
+import { bareInput, useField } from "./field";
 
 export const VIEW_LABEL: Record<Filter, string> = { all: "All", recent: "Recent", active: "Active", pinned: "Pinned" };
 const VIEW_HINT: Record<Filter, string> = {
@@ -152,12 +152,12 @@ export function ViewsControl({ theme, value, counts, compact, onChange }: { them
 /** `onClose` (phones): the field was opened from the search icon; it takes focus and its X closes it. */
 export function SearchField({ theme, query, onChange, onClose }: { theme: PluginTheme; query: string; onChange(next: string): void; onClose?(): void }) {
   const c = theme.colors;
-  const field = useOwnField();
+  const field = useField(theme);
   return (
-    <View style={{ height: 38, flexDirection: "row", alignItems: "center", gap: 6, marginHorizontal: 8, paddingLeft: 10, borderRadius: 10, backgroundColor: c.surface1, borderWidth: 1, borderColor: c.border }}>
+    <View style={{ height: 38, flexDirection: "row", alignItems: "center", gap: 6, marginHorizontal: 8, paddingLeft: 10, borderRadius: 10, backgroundColor: c.surface1, borderWidth: 1, borderColor: field.borderColor }}>
       <Icon name="Search" size={14} color={c.foregroundMuted} />
       <TextInput
-        {...field}
+        {...field.input}
         value={query}
         autoFocus={!!onClose}
         onChangeText={onChange}
@@ -167,7 +167,7 @@ export function SearchField({ theme, query, onChange, onClose }: { theme: Plugin
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
-        style={{ flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 0 }}
+        style={{ ...bareInput, flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 0 }}
       />
       {query || onClose ? (
         <Pressable accessibilityRole="button" accessibilityLabel={onClose ? "Close search" : "Clear search"} onPress={onClose ?? (() => onChange(""))} hitSlop={3} style={{ width: 38, height: 38, alignItems: "center", justifyContent: "center" }}>

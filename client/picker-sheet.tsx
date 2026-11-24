@@ -4,7 +4,7 @@ import type { PluginTheme } from "@getpaseo/plugin";
 import { Icon, ScrollView, TextInput } from "@getpaseo/plugin/client/ui";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { useOwnField } from "./chat-nav";
+import { bareInput, useField } from "./field";
 import { Sheet } from "./sheet";
 
 export interface PickerItem {
@@ -36,7 +36,7 @@ export function PickerSheet({
   onClose(): void;
 }) {
   const c = theme.colors;
-  const field = useOwnField();
+  const field = useField(theme);
   const [query, setQuery] = useState("");
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const shown = items.filter((item) => {
@@ -47,10 +47,10 @@ export function PickerSheet({
 
   return (
     <Sheet theme={theme} title={title} compact={compact} anchor={null} width={420} onClose={onClose}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 6, marginBottom: 6, paddingHorizontal: 10, minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface0 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 6, marginBottom: 6, paddingHorizontal: 10, minHeight: 40, borderRadius: 10, borderWidth: 1, borderColor: field.borderColor, backgroundColor: c.surface0 }}>
         <Icon name="Search" size={15} color={c.foregroundMuted} />
         <TextInput
-          {...field}
+          {...field.input}
           value={query}
           onChangeText={setQuery}
           autoFocus={!compact}
@@ -59,7 +59,7 @@ export function PickerSheet({
           accessibilityLabel={`Search: ${title}`}
           placeholder="Search"
           placeholderTextColor={c.foregroundMuted}
-          style={{ flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 8 }}
+          style={{ ...bareInput, flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 8 }}
         />
       </View>
       {/* Grows with the list up to the sheet's height, then scrolls. */}

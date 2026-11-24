@@ -12,7 +12,7 @@ import { useNavigatorStore } from "./runtime";
 import { Sheet, SheetDivider, SheetItem, type Anchor } from "./sheet";
 import type { Store } from "./store";
 import type { ToastMessage } from "./toast";
-import { useOwnField } from "./chat-nav";
+import { bareInput, useField } from "./field";
 
 export interface MenuTarget {
   row: WorkspaceRow;
@@ -83,7 +83,7 @@ export function WorkspaceMenu({
   const [title, setTitle] = useState(workspace.title);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const titleField = useOwnField();
+  const titleField = useField(theme);
   const pinned = snapshot.pinsFor(profileId).has(`${row.serverId}:${workspace.id}`);
   const offRecent = removedFromRecent(snapshot.reads, row.serverId, workspace);
   const index = siblings.indexOf(workspace.id);
@@ -139,9 +139,9 @@ export function WorkspaceMenu({
         <SheetDivider theme={theme} />
         {mode === "rename" ? (
           <View style={{ gap: 8, padding: 8 }}>
-            <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
+            <View style={{ minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: titleField.borderColor, backgroundColor: c.surface0, paddingHorizontal: 12, justifyContent: "center" }}>
               <TextInput
-                {...titleField}
+                {...titleField.input}
                 value={title}
                 onChangeText={setTitle}
                 autoFocus
@@ -151,7 +151,7 @@ export function WorkspaceMenu({
                 accessibilityLabel="Workspace name"
                 placeholder="Workspace name"
                 placeholderTextColor={c.foregroundMuted}
-                style={{ color: c.foreground, fontSize: 16, paddingVertical: 10 }}
+                style={{ ...bareInput, color: c.foreground, fontSize: 16, paddingVertical: 10 }}
               />
             </View>
             {error ? <Text style={{ color: c.statusDanger }}>{`Could not rename: ${error}`}</Text> : null}
