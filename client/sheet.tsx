@@ -3,7 +3,7 @@
 import type { PluginTheme } from "@getpaseo/plugin";
 import { Icon } from "@getpaseo/plugin/client/ui";
 import type { ReactNode } from "react";
-import { Modal, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useKeyboardTop } from "./keyboard";
 
 /** Where the popover hangs on desktop: the opening button's frame in window coordinates. */
@@ -40,8 +40,9 @@ export function Sheet({
   const c = theme.colors;
   const window = useWindowDimensions();
   // A text field in the sheet (e.g. Rename) opens the keyboard: the phone sheet then sits on top of it.
+  // iOS only: on Android a Modal is its own window, and no sheet there has been seen under the keyboard.
   const keyboardTop = useKeyboardTop();
-  const floor = keyboardTop === null ? 8 : window.height - keyboardTop + 8;
+  const floor = keyboardTop === null || Platform.OS !== "ios" ? 8 : window.height - keyboardTop + 8;
   const popover = !compact && anchor;
   const panelWidth = Math.min(width, window.width - 16);
   // Under the button, or above it when there is little room below.
