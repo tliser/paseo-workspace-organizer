@@ -142,8 +142,9 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
     </Pressable>
   );
 
+  // Long lists (models) scroll inside a capped box instead of stretching the whole sheet.
   const options = (items: { id: string; label: string }[], selected: string | undefined, choose: (id: string) => void) => (
-    <View style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, overflow: "hidden" }}>
+    <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={{ maxHeight: 264, flexGrow: 0, borderRadius: 10, borderWidth: 1, borderColor: c.border }}>
       {items.map((item) => (
         <Pressable
           key={item.id}
@@ -159,7 +160,7 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
           <Text numberOfLines={1} style={{ flex: 1, color: c.foreground, fontSize: 15 }}>{item.label}</Text>
         </Pressable>
       ))}
-    </View>
+    </ScrollView>
   );
 
   const actions = (
