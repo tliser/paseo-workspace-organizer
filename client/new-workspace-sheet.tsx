@@ -44,7 +44,12 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [branch, setBranch] = useState("");
-  const [picker, setPicker] = useState<"provider" | "model" | "mode" | "thinking" | null>(null);
+  const [picker, setPickerState] = useState<"provider" | "model" | "mode" | "thinking" | null>(null);
+  const [modelQuery, setModelQuery] = useState("");
+  const setPicker = (next: typeof picker) => {
+    setPickerState(next);
+    setModelQuery("");
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -186,6 +191,13 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
   const promptFocused = useRef(false);
   const nameField = useField(theme);
   const branchField = useField(theme);
+  const modelSearchField = useField(theme);
+  // Every word must appear in the model's name or id, as in the catch-up model picker.
+  const modelWords = modelQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const shownModels = (provider?.models ?? []).filter((entry) => {
+    const text = `${entry.label} ${entry.id}`.toLowerCase();
+    return modelWords.every((word) => text.includes(word));
+  });
   const promptField = useField(theme);
   const keyboardTop = useKeyboardTop();
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -274,7 +286,30 @@ export function NewWorkspaceSheet({ theme, project, compact, onClose, onCreated 
               <View>
                 <Text style={label}>Model</Text>
                 {select("model", model?.label ?? "Choose a model")}
-                {picker === "model" && provider ? <View style={{ marginTop: 6 }}>{options(provider.models, model?.id, setModelId)}</View> : null}
+                {picker === "model" && provider ? (
+                  <View style={{ marginTop: 6, gap: 6 }}>
+                    <View style={{ ...field, minHeight: 40, borderColor: modelSearchField.borderColor }}>
+                      <Icon name="Search" size={15} color={c.foregroundMuted} />
+                      <TextInput
+                        {...modelSearchField.input}
+                        value={modelQuery}
+                        onChangeText={setModelQuery}
+                        autoFocus={!compact}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        accessibilityLabel="Search models"
+                        placeholder="Search models"
+                        placeholderTextColor={c.foregroundMuted}
+                        style={{ ...bareInput, flex: 1, color: c.foreground, fontSize: 15, paddingVertical: 8 }}
+                      />
+                    </View>
+                    {shownModels.length ? (
+                      options(shownModels, model?.id, setModelId)
+                    ) : (
+                      <Text style={{ color: c.foregroundMuted, fontSize: 13, padding: 10 }}>Nothing matches.</Text>
+                    )}
+                  </View>
+                ) : null}
               </View>
               {model && model.thinking.length > 1 ? (
                 <View>
